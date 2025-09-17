@@ -1,0 +1,9 @@
+[
+    {
+        "alert_type": "High Tamper Score",
+        "score": 100,
+        "filename": "chatgpt-misuse-edt.jpg",
+        "verified_by": "employee@gov.in",
+        "timestamp": "2025-09-17T11:56:56.043072"
+    }
+]

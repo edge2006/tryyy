@@ -1,0 +1,292 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Smart Certificate Verifier</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="{{ url_for('static', filename='style.css') }}">
+    <script>
+        // Apply theme on initial load to prevent flash of wrong theme
+        if (localStorage.theme === 'dark' || (!('theme' in localStorage) && window.matchMedia('(prefers-color-scheme: dark)').matches)) {
+            document.documentElement.classList.add('dark');
+        } else {
+            document.documentElement.classList.remove('dark');
+        }
+    </script>
+</head>
+<body class="min-h-screen bg-gradient-to-b from-blue-50 to-white dark:from-gray-900 dark:to-black font-sans text-gray-800 dark:text-gray-200">
+
+    <!-- Animated Background for Login Page -->
+    <div id="login-bg-animation" class="area">
+        <ul class="circles"><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li><li></li></ul>
+    </div>
+
+    <div id="app-container">
+        <nav id="navbar" class="bg-white/80 dark:bg-gray-900/80 backdrop-blur-sm shadow-sm py-2 px-6 sticky top-0 z-50 hidden">
+            <div class="container mx-auto flex justify-between items-center">
+                <div class="flex items-center space-x-4">
+                    <button id="back-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800 hidden">
+                        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M10 19l-7-7m0 0l7-7m-7 7h18"></path></svg>
+                    </button>
+                    <div id="nav-brand" class="flex items-center space-x-3 cursor-pointer">
+                        <img src="https://placehold.co/200x50/3B82F6/FFFFFF?text=ProofPoint" alt="ProofPoint Logo" class="h-10">
+                    </div>
+                </div>
+                <div class="flex items-center space-x-2">
+                    <span id="user-greeting" class="text-gray-600 dark:text-gray-300 text-sm hidden sm:block"></span>
+                    <div class="relative">
+                        <button id="menu-btn" class="p-2 rounded-full hover:bg-gray-100 dark:hover:bg-gray-800">
+                            <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 6h16M4 12h16m-7 6h7"></path></svg>
+                        </button>
+                        <div id="menu-dropdown" class="hidden absolute right-0 mt-2 w-56 bg-white dark:bg-gray-800 rounded-md shadow-lg py-1 z-50 border dark:border-gray-700">
+                            <a href="#" id="menu-dashboard-link" class="hidden flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"></a>
+                            <a href="#" id="menu-history" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700">
+                               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                <span>Verification History</span>
+                            </a>
+                             <a href="#" id="menu-theme-toggle" class="flex items-center gap-3 px-4 py-2 text-sm text-gray-700 dark:text-gray-200 hover:bg-gray-100 dark:hover:bg-gray-700"></a>
+                            <div class="border-t my-1 dark:border-gray-600"></div>
+                            <a href="#" id="logout-btn" class="flex items-center gap-3 px-4 py-2 text-sm text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20">
+                               <svg class="w-5 h-5" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 16l4-4m0 0l-4-4m4 4H7m6 4v1a3 3 0 01-3 3H6a3 3 0 01-3-3V7a3 3 0 013-3h4a3 3 0 013 3v1"></path></svg>
+                                <span>Logout</span>
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </nav>
+
+        <main class="container mx-auto px-4 py-8">
+            <section id="login-page">
+                 <div class="flex items-center justify-center min-h-[70vh]">
+                    <div class="w-full max-w-lg bg-white dark:bg-gray-800 p-8 rounded-xl shadow-lg animate-fade-in border dark:border-gray-700 z-10">
+                        <div class="text-center mb-8">
+                           <img src="https://placehold.co/200x50/3B82F6/FFFFFF?text=ProofPoint" alt="ProofPoint Logo" class="h-12 mx-auto mb-4">
+                           <h2 class="text-3xl font-bold text-gray-800 dark:text-white">Authorized Login</h2>
+                           <p class="text-gray-500 dark:text-gray-400">Please enter your credentials to continue.</p>
+                        </div>
+                        <form id="login-form" class="space-y-6">
+                            <div class="relative group">
+                                <input type="email" id="email" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent peer" value="employee@gov.in" required>
+                                <label for="email" class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 transition-all transform peer-focus:-translate-y-6 peer-focus:scale-75 peer-focus:bg-white dark:peer-focus:bg-gray-800 peer-focus:px-1 peer-focus:text-blue-600 peer-valid:-translate-y-6 peer-valid:scale-75 peer-valid:bg-white dark:peer-valid:bg-gray-800 peer-valid:px-1">Email Address</label>
+                            </div>
+                            <div class="relative group">
+                                <input type="password" id="password" class="w-full px-4 py-3 border border-gray-300 dark:border-gray-600 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500 bg-transparent peer" value="strongpassword123" required>
+                                <label for="password" class="absolute left-4 top-3 text-gray-500 dark:text-gray-400 transition-all transform peer-focus:-translate-y-6 peer-focus:scale-75 peer-focus:bg-white dark:peer-focus:bg-gray-800 peer-focus:px-1 peer-focus:text-blue-600 peer-valid:-translate-y-6 peer-valid:scale-75 peer-valid:bg-white dark:peer-valid:bg-gray-800 peer-valid:px-1">Password</label>
+                            </div>
+                            <button type="submit" class="w-full py-3 bg-blue-600 text-white rounded-md hover:bg-blue-700 transition font-medium">Login</button>
+                            <p id="login-error" class="text-red-500 text-sm mt-2 text-center hidden"></p>
+                        </form>
+                    </div>
+                </div>
+            </section>
+
+            <section id="landing-page" class="hidden">
+                 <div class="text-center py-16">
+                    <h1 class="text-4xl md:text-5xl font-bold text-gray-800 dark:text-white mb-6">Smart Certificate Verifier</h1>
+                    <p class="text-xl text-gray-600 dark:text-gray-300 mb-10 max-w-2xl mx-auto">Upload a document to extract key information and check for tampering using AI.</p>
+                    <button id="upload-cert-btn" class="px-8 py-4 bg-blue-600 text-white rounded-lg shadow-md hover:bg-blue-700 transition duration-300 font-medium">
+                        Verify Document
+                    </button>
+                    <div class="mt-20 max-w-4xl mx-auto">
+                        <h2 class="text-2xl font-bold mb-8 text-gray-800 dark:text-white">How It Works in 3 Simple Steps</h2>
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-8 text-center">
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
+                                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/50 mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"></path></svg>
+                                </div>
+                                <h3 class="text-lg font-semibold mb-2">1. Upload Document</h3>
+                                <p class="text-gray-600 dark:text-gray-400">Select or drag & drop a PDF or image file of the document.</p>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
+                                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/50 mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 21l-6-6m2-5a7 7 0 11-14 0 7 7 0 0114 0zM10 10l.01.01"></path></svg>
+                                </div>
+                                <h3 class="text-lg font-semibold mb-2">2. AI Analysis</h3>
+                                <p class="text-gray-600 dark:text-gray-400">Our AI extracts data, scans for QR codes, and checks for tampering.</p>
+                            </div>
+                            <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
+                                <div class="flex items-center justify-center h-16 w-16 rounded-full bg-blue-100 dark:bg-blue-900/50 mx-auto mb-4">
+                                    <svg class="w-8 h-8 text-blue-600 dark:text-blue-300" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z"></path></svg>
+                                </div>
+                                <h3 class="text-lg font-semibold mb-2">3. Review Results</h3>
+                                <p class="text-gray-600 dark:text-gray-400">Get an instant, detailed report including verification status and a tamper score.</p>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="upload-page" class="hidden">
+                 <div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 md:p-8 border dark:border-gray-700">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6 text-center">Upload Document</h2>
+                    <div class="space-y-6">
+                        <div id="drop-zone" class="border-2 border-dashed rounded-lg p-8 text-center cursor-pointer transition-colors border-gray-300 dark:border-gray-600 bg-gray-50 dark:bg-gray-700/50 hover:bg-blue-50 dark:hover:bg-gray-700">
+                            <input type="file" id="file-input" class="hidden" accept=".pdf,.jpg,.jpeg,.png">
+                            <div id="drop-zone-content"></div>
+                        </div>
+                        <div id="upload-page-actions" class="flex flex-col sm:flex-row gap-4">
+                            <button id="verify-btn" class="w-full py-3 rounded-md text-white font-medium transition bg-gray-400 cursor-not-allowed" disabled>
+                                <span id="verify-btn-text">Analyze & Verify</span>
+                                <div id="loader" class="hidden items-center justify-center">
+                                    <svg class="animate-spin -ml-1 mr-3 h-5 w-5 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                                    Processing...
+                                </div>
+                            </button>
+                            <button id="view-result-btn" class="hidden w-full py-3 rounded-md bg-green-600 hover:bg-green-700 text-white font-medium transition">
+                                View Last Result
+                            </button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="results-page" class="hidden">
+                 <div class="max-w-2xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md overflow-hidden border dark:border-gray-700">
+                    <div class="p-6 md:p-8">
+                        <h2 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-4 text-center">Verification Results</h2>
+                        <div id="cache-indicator" class="hidden text-sm text-center text-gray-600 dark:text-gray-300 mb-4 p-2 bg-blue-100 dark:bg-blue-900/50 rounded-md border border-blue-200 dark:border-blue-700"></div>
+                        <div class="bg-gray-50 dark:bg-gray-700/50 rounded-lg p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-2">Verification Status</h3>
+                            <p id="result-status-text" class="text-2xl font-bold"></p>
+                        </div>
+
+                        <div id="qr-code-section" class="hidden border border-green-200 dark:border-green-700 bg-green-50 dark:bg-green-900/20 rounded-lg p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-2 text-green-800 dark:text-green-200 flex items-center gap-2">
+                                <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4"></path><path stroke-linecap="round" stroke-linejoin="round" d="M5 12h14M12 5l7 7-7 7"></path></svg>
+                                QR Code Scanned Successfully
+                            </h3>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-2">Decoded Data:</p>
+                            <p id="qr-code-result" class="text-sm font-mono bg-gray-100 dark:bg-gray-900 p-2 rounded mt-1 break-all"></p>
+                        </div>
+
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4 border-b pb-2 dark:border-gray-600">AI Tamper Analysis</h3>
+                            <div class="flex justify-between items-center">
+                                <p class="text-sm text-gray-600 dark:text-gray-400">Tamper Score</p>
+                                <p id="result-tamper-score" class="font-bold text-xl"></p>
+                            </div>
+                            <p class="text-sm text-gray-600 dark:text-gray-400 mt-4">AI Summary:</p>
+                            <p id="result-analysis-summary" class="text-sm text-gray-800 dark:text-gray-200 italic mt-1"></p>
+                        </div>
+
+                        <div class="border border-gray-200 dark:border-gray-700 rounded-lg p-6 mb-6">
+                            <h3 class="text-lg font-semibold mb-4 border-b pb-2 dark:border-gray-600">Extracted Details (from OCR)</h3>
+                            <div id="dynamic-details-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                                <!-- Data will be dynamically inserted here by JS -->
+                            </div>
+                        </div>
+
+                        <div class="flex flex-col sm:flex-row gap-4">
+                            <button id="verify-another-btn" class="flex-1 py-3 bg-white dark:bg-gray-800 border border-blue-600 text-blue-600 dark:text-blue-400 rounded-md hover:bg-blue-50 dark:hover:bg-gray-700 transition font-medium">Verify Another</button>
+                            <button id="download-pdf-btn" class="flex-1 py-3 bg-green-600 hover:bg-green-700 text-white font-medium transition rounded-md">Download PDF Report</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+             <section id="history-page" class="hidden">
+                 <div class="max-w-4xl mx-auto bg-white dark:bg-gray-800 rounded-xl shadow-md p-6 md:p-8 border dark:border-gray-700">
+                    <h2 class="text-2xl md:text-3xl font-bold text-gray-800 dark:text-white mb-6 text-center">Verification History</h2>
+                    <div class="flex flex-col sm:flex-row gap-4 mb-6">
+                        <input type="text" id="history-search" class="w-full px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Search by name or doc number...">
+                        <select id="history-filter" class="w-full sm:w-48 px-4 py-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 focus:outline-none focus:ring-2 focus:ring-blue-500">
+                            <option value="all">All Statuses</option>
+                            <option value="Verified">Verified</option>
+                            <option value="Record Not Found">Not Found</option>
+                        </select>
+                    </div>
+                    <div id="history-list" class="space-y-4">
+                         <p id="no-history-msg" class="text-center text-gray-500 dark:text-gray-400">No verification history found.</p>
+                    </div>
+                </div>
+            </section>
+
+            <section id="admin-dashboard-page" class="hidden">
+                <div class="max-w-4xl mx-auto">
+                    <h1 class="text-3xl font-bold mb-6">Admin Dashboard</h1>
+                    <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
+                            <h2 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Total Verifications</h2>
+                            <p id="admin-total-verifications" class="text-4xl font-bold mt-2">--</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
+                            <h2 class="text-lg font-semibold text-gray-500 dark:text-gray-400">High-Risk Alerts</h2>
+                            <p id="admin-high-risk-alerts" class="text-4xl font-bold mt-2 text-red-500">--</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
+                             <h2 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Open Support Tickets</h2>
+                            <p id="admin-support-tickets" class="text-4xl font-bold mt-2 text-yellow-500">--</p>
+                        </div>
+                    </div>
+                    <div class="mt-8">
+                        <h2 class="text-xl font-bold mb-4">Actions</h2>
+                        <div class="space-x-4">
+                            <button class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Manage Users</button>
+                            <button class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">View Alerts Log</button>
+                        </div>
+                    </div>
+                </div>
+            </section>
+
+            <section id="institution-dashboard-page" class="hidden">
+                 <div class="max-w-4xl mx-auto">
+                    <h1 class="text-3xl font-bold mb-2">Institution Dashboard</h1>
+                    <p id="inst-name" class="text-lg text-gray-500 dark:text-gray-400 mb-6"></p>
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
+                            <h2 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Verifications Today</h2>
+                            <p id="inst-verifications-today" class="text-4xl font-bold mt-2">--</p>
+                        </div>
+                        <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-md border dark:border-gray-700">
+                            <h2 class="text-lg font-semibold text-gray-500 dark:text-gray-400">Total Records in DB</h2>
+                            <p id="inst-total-records" class="text-4xl font-bold mt-2">--</p>
+                        </div>
+                    </div>
+                     <div class="mt-8">
+                        <h2 class="text-xl font-bold mb-4">Actions</h2>
+                        <button class="px-6 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Bulk Upload Student Data (CSV)</button>
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <footer class="bg-white dark:bg-gray-800 border-t dark:border-gray-700 py-8 mt-16 text-sm text-gray-600 dark:text-gray-400">
+         <div class="container mx-auto px-4 text-center">
+            <p>Developed by Yogesh Kumar</p>
+            <p>Satyug Darshan Institute of Engineering and Technology</p>
+            <p><a href="mailto:yogeshkumar@gmail.com" class="hover:text-blue-500">yogeshkumar@gmail.com</a></p>
+            <div class="mt-4 border-t dark:border-gray-600 pt-4 text-xs text-gray-500">
+                 &copy; 2025 ProofPoint. All rights reserved.
+            </div>
+        </div>
+    </footer>
+
+    <button id="contact-fab" class="hidden fixed bottom-6 right-6 bg-blue-600 text-white p-4 rounded-full shadow-lg hover:bg-blue-700 transition transform hover:scale-110">
+        <svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"></path></svg>
+    </button>
+    <div id="contact-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+        <div id="contact-modal-content" class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-md w-full animate-slide-up">
+            <div class="flex justify-between items-center mb-4"><h3 class="text-lg font-bold">Contact Support</h3><button id="close-contact-modal" class="p-1 rounded-full hover:bg-gray-200 dark:hover:bg-gray-700"><svg class="w-6 h-6" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"></path></svg></button></div>
+            <p class="text-sm text-gray-600 dark:text-gray-400 mb-4">Send us a message and we'll get back to you.</p>
+            <form id="contact-form">
+                <textarea id="contact-textarea" rows="4" class="w-full p-2 border rounded-md bg-gray-50 dark:bg-gray-700 focus:outline-none focus:ring-2 focus:ring-blue-500" placeholder="Type your message..."></textarea>
+                <button type="submit" class="mt-4 w-full py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700">Submit Ticket</button>
+                <p id="contact-success" class="text-green-500 text-sm mt-2 text-center hidden">Message sent!</p>
+            </form>
+        </div>
+    </div>
+
+    <div id="error-modal" class="hidden fixed inset-0 bg-black/60 flex items-center justify-center z-50 p-4">
+         <div class="bg-white dark:bg-gray-800 p-6 rounded-lg shadow-xl max-w-sm w-full animate-slide-up">
+            <h3 class="text-lg font-bold text-red-700">Error</h3>
+            <p id="error-message" class="text-gray-600 dark:text-gray-300 mt-2">An unexpected error occurred.</p>
+            <button id="close-error-modal" class="mt-4 w-full py-2 bg-red-600 text-white rounded-md hover:bg-red-700">Close</button>
+        </div>
+    </div>
+    <script src="{{ url_for('static', filename='script.js') }}"></script>
+</body>
+</html>
